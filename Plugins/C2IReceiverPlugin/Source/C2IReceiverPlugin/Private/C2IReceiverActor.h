@@ -30,6 +30,7 @@ public:
 
 	//////////////////////////////////////////////////////////////////////////
 	//Here are the actual delegates
+
 	UPROPERTY(BlueprintAssignable,Category = "C2I")
 		FTestDelegate OnTestDelegate;
 
