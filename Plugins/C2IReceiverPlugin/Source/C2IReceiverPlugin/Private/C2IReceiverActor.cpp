@@ -56,3 +56,5 @@ FString AC2IReceiverActor::TestFunctionRetVal(FString _testval)
 	return _testval + _testval;
 }
 
+
+

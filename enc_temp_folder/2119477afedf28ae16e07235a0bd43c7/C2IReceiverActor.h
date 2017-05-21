@@ -47,14 +47,12 @@ public:
 
 
 	//////////////////////////////////////////////////////////////////////////
-	//This is a function which can be called in the level blueprint.
 	UFUNCTION(BlueprintCallable, Category = "C2I")
 		FString TestFunctionRetVal(FString _testval);
 
 	FString TestVal;
 
 	//////////////////////////////////////////////////////////////////////////
-	//This is an event in the blueprint of the actor
 	UFUNCTION(BlueprintImplementableEvent, Category = "C2I")
 		void TestImplementableEvent(float CurrentHealth);
 };
