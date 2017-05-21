@@ -28,10 +28,10 @@ public:
 
 
 	//Here are the actual delegates
-	UPROPERTY(BlueprintCallable,Category = "C2I")
+	UPROPERTY(BlueprintAssignable,Category = "C2I")
 		FTestDelegate OnTestDelegate;
 
-	UPROPERTY(BlueprintCallable, Category = "C2I")
+	UPROPERTY(BlueprintAssignable, Category = "C2I")
 		FTestDelegateParam OnTestDelegateParam;
 	
 
