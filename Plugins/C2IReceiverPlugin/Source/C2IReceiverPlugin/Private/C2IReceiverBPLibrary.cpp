@@ -16,6 +16,6 @@ void UC2IReceiverBPLibrary::TestDelegateBPLib()
 
 	if (GEngine)
 	{
-	//	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Yellow, t);
+		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Yellow, t);
 	}
 }

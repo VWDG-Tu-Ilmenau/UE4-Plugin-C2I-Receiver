@@ -1,7 +1,7 @@
 #pragma once
 
 #include "GameFramework/Actor.h"
-#include "C2IReceiverActor.generated.h"
+#include "C2ITestActor.generated.h"
 
 
 // https://docs.unrealengine.com/latest/INT/Programming/UnrealArchitecture/Delegates/index.html
@@ -13,7 +13,7 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FTestDelegateParam, float, tmpVal);
 
 
 UCLASS()
-class  AC2IReceiverActor : public AActor
+class  AC2ITestActor : public AActor
 {
 	GENERATED_UCLASS_BODY()
 

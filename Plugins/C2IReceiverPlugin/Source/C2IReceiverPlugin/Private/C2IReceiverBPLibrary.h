@@ -8,9 +8,10 @@ class UC2IReceiverBPLibrary : public UBlueprintFunctionLibrary
 	GENERATED_BODY()
 
 public:
-	UFUNCTION(BlueprintPure, Category = "Output|SbS Plugin", meta = (DisplayName = "Test", Keywords = "Tests"))
+	UFUNCTION(BlueprintPure, Category = "C2I", meta = (DisplayName = "Test", Keywords = "Tests"))
 		static bool Test();
 
 
-
+	UFUNCTION(BlueprintCallable, Category = "C2I", meta = (DisplayName = "TestDelegateBPLib", Keywords = "TestDelegateBPLib"))
+		static void TestDelegateBPLib();
 };

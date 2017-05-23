@@ -1,60 +1,104 @@
+// Fill out your copyright notice in the Description page of Project Settings.
+
 #include "C2IReceiverPlugin.h"
-
-
 #include "C2IReceiverActor.h"
 
-#include "Engine.h"
 
-
-AC2IReceiverActor::AC2IReceiverActor(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer)
+// Sets default values
+AC2IReceiverActor::AC2IReceiverActor()
 {
-	OnTestDelegate.AddDynamic(this, &AC2IReceiverActor::TestFunction);
-	OnTestDelegateParam.AddDynamic(this, &AC2IReceiverActor::TestFunctionParam);
+	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
+	PrimaryActorTick.bCanEverTick = true;
+
 }
 
-void AC2IReceiverActor::Test_Implementation() const
+// Called when the game starts or when spawned
+void AC2IReceiverActor::BeginPlay()
 {
-	if (GEngine)
-	{
-		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Yellow, FString(TEXT("Test_Implementation")));
+	Super::BeginPlay();
+
+}
+
+
+void AC2IReceiverActor::EndPlay(const EEndPlayReason::Type EndPlayReason)
+{
+	Super::EndPlay(EndPlayReason);
+	UWorld* World = GetWorld();
+
+	GetWorld()->GetTimerManager().ClearTimer(TimerHandleTest);
+
+	if (TCPClientSocket != NULL) {
+		TCPClientSocket->Close();
+		ISocketSubsystem::Get(PLATFORM_SOCKETSUBSYSTEM)->DestroySocket(TCPClientSocket);
 	}
 
-	OnTestDelegate.Broadcast();
 }
 
-void AC2IReceiverActor::TestParam_Implementation(float _tmpVal) const
+// Called every frame
+void AC2IReceiverActor::Tick(float DeltaTime)
 {
-	FString t = FString::SanitizeFloat(_tmpVal*2);
-	if (GEngine)
+	Super::Tick(DeltaTime);
+
+}
+
+bool AC2IReceiverActor::TryToConnectToServer(FString _ip /*= "127.0.0.1"*/, int32 _port /*= 12345*/)
+{
+	TCPClientSocket = ISocketSubsystem::Get(PLATFORM_SOCKETSUBSYSTEM)->CreateSocket(NAME_Stream, TEXT("default"), false);
+
+	FString address = _ip;
+	int32 port = _port;
+	FIPv4Address ip;
+	FIPv4Address::Parse(address, ip);
+
+
+	TSharedRef<FInternetAddr> addr = ISocketSubsystem::Get(PLATFORM_SOCKETSUBSYSTEM)->CreateInternetAddr();
+	addr->SetIp(ip.Value);
+	addr->SetPort(port);
+
+	bool connected = TCPClientSocket->Connect(*addr);
+
+	TArray<uint8> ReceivedData;
+	int32 Read = 0;
+
+	if (connected)
 	{
-		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Yellow, t);
+		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString::Printf(TEXT("Connected!")));
+
+		GetWorldTimerManager().SetTimer(TimerHandleTest, this, &AC2IReceiverActor::CheckForReceivedData, 0.01f, true);
+
+
+	}
+	else
+		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString::Printf(TEXT("Shit.")));
+
+	return connected;
+}
+
+void AC2IReceiverActor::CheckForReceivedData()
+{
+	TArray<uint8> ReceivedData;
+	uint32 Size;
+	bool hasData = TCPClientSocket->HasPendingData(Size);
+	if (hasData)
+	{
+		ReceivedData.Init(FMath::Min(Size, 65507u), Size);
+		
+		int32 Read = 0;
+		TCPClientSocket->Recv(ReceivedData.GetData(), ReceivedData.Num(), Read);
+		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString::Printf(TEXT("Data Read! %d"), ReceivedData.Num()));
 	}
 
-	OnTestDelegateParam.Broadcast(_tmpVal);
-}
-
-void AC2IReceiverActor::TestFunction()
-{
-	if (GEngine)
+	if (ReceivedData.Num() <= 0)
 	{
-		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Yellow, FString(TEXT("TestFunction")));
+		//No Data Received
+		return;
 	}
+
+	char* Data = (char*)ReceivedData.GetData();
+	Data[Size] = '\0';
+	FString Msg = UTF8_TO_TCHAR(Data);
+
+
+	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, TEXT(Msg));
+	OnTCPCallback.Broadcast(Msg);
 }
-
-
-void AC2IReceiverActor::TestFunctionParam(float _val)
-{
-	if (GEngine)
-	{
-		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Yellow, FString(TEXT("TestFunctionParam")));
-	}
-}
-
-FString AC2IReceiverActor::TestFunctionRetVal(FString _testval)
-{
-//	TestVal = _testval;
-	return _testval + _testval;
-}
-
-
-
