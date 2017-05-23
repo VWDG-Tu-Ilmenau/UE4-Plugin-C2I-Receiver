@@ -99,6 +99,6 @@ void AC2IReceiverActor::CheckForReceivedData()
 	FString Msg = UTF8_TO_TCHAR(Data);
 
 
-	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, TEXT(Msg));
+	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, Msg);
 	OnTCPCallback.Broadcast(Msg);
 }
