@@ -46,5 +46,4 @@ public:
 
 private:
 	FTimerHandle TimerHandleTest;
-
 };
