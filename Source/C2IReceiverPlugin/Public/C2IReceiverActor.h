@@ -26,24 +26,25 @@ public:
 
 protected:
 	// Called when the game starts or when spawned
-	virtual void BeginPlay() override;
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 
-public:	
-	// Called every frame
-	virtual void Tick(float DeltaTime) override;
-		
+public:		
 	FSocket* TCPClientSocket;
 	FIPv4Endpoint RemoteAddressForConnection;
 	
-	UPROPERTY(BlueprintAssignable, Category = "C2I")
+	UPROPERTY(BlueprintAssignable, Category = "Car2IXS|Receiver")
 		FDelegateTCPCallback OnTCPCallback;
 
-	UFUNCTION(BlueprintCallable, Category = "C2I")
+	UFUNCTION(BlueprintCallable, Category = "Car2IXS|Receiver")
 		bool TryToConnectToServer(FString _ip = "127.0.0.1", int32 _port = 12345);
 
 	void CheckForReceivedData();
 
+	FString StringFromBinaryArray(TArray<uint8> BinaryArray);
 private:
 	FTimerHandle TimerHandleTest;
+	FCriticalSection MyMutex;
+
+
+
 };
