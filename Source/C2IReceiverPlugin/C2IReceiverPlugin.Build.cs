@@ -4,8 +4,8 @@ using UnrealBuildTool;
 
 public class C2IReceiverPlugin : ModuleRules
 {
-	public C2IReceiverPlugin(TargetInfo Target)
-	{
+	public C2IReceiverPlugin(ReadOnlyTargetRules Target) : base(Target)
+    {
 		
 		PublicIncludePaths.AddRange(
 			new string[] {
