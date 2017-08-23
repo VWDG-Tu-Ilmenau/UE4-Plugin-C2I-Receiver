@@ -56,7 +56,7 @@ bool AC2IReceiverActor::TryToConnectToServer(FString _ip /*= "127.0.0.1"*/, int3
 
 	}
 	else
-		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString::Printf(TEXT("Shit.")));
+		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString::Printf(TEXT("Could not connect to server. Please try again.")));
 
 	return connected;
 }
