@@ -67,6 +67,9 @@ void AC2IReceiverActor::CheckForReceivedData()
 		TArray<uint8> ReceivedData;
 
 		bool hasData = TCPClientSocket->HasPendingData(Size);
+
+	
+
 		if (hasData)
 		{
 			ReceivedData.Init(FMath::Min(Size, 65507u), Size);

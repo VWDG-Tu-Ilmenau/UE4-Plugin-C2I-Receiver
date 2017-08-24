@@ -3,11 +3,13 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "GameFramework/Actor.h"
+
+#include "../Public/C2IReceiverActor.h"
+
 #include "GBPReceiver.generated.h"
 
 UCLASS()
-class AGBPReceiver : public AActor
+class AGBPReceiver : public AC2IReceiverActor
 {
 	GENERATED_BODY()
 	
@@ -15,14 +17,13 @@ public:
 	// Sets default values for this actor's properties
 	AGBPReceiver();
 
+	// Called every frame
+	virtual void Tick(float DeltaTime) override;
+	virtual void CheckForReceivedData();
+
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
+	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason);
 
-public:	
-	// Called every frame
-	virtual void Tick(float DeltaTime) override;
-
-	
-	
 };

@@ -1,9 +1,9 @@
 #pragma once
 #include "Engine.h"
-#include "C2IReceiverBPLibrary.generated.h"
+#include "C2ITestBPLibrary.generated.h"
 
 UCLASS()
-class UC2IReceiverBPLibrary : public UBlueprintFunctionLibrary
+class UC2ITestBPLibrary : public UBlueprintFunctionLibrary
 {
 	GENERATED_BODY()
 

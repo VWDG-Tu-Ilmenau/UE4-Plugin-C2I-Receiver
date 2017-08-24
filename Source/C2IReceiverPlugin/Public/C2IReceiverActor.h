@@ -38,10 +38,10 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Car2IXS|Receiver")
 		bool TryToConnectToServer(FString _ip = "127.0.0.1", int32 _port = 12345);
 
-	void CheckForReceivedData();
+	virtual void CheckForReceivedData();
 
 	FString StringFromBinaryArray(TArray<uint8> BinaryArray);
-private:
+protected:
 	FTimerHandle TimerHandleTest;
 	FCriticalSection MyMutex;
 

@@ -1,15 +1,15 @@
 #include "C2IReceiverPlugin.h"
 
-#include "C2IReceiverBPLibrary.h"
+#include "C2ITestBPLibrary.h"
 
 
 
-bool UC2IReceiverBPLibrary::Test()
+bool UC2ITestBPLibrary::Test()
 {
 	return true;
 }
 
-void UC2IReceiverBPLibrary::TestDelegateBPLib()
+void UC2ITestBPLibrary::TestDelegateBPLib()
 {
 	FString t = FString("EVENTHYPE");
 
