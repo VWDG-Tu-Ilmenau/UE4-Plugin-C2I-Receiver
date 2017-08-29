@@ -4,8 +4,6 @@
 #include "Networking.h" //Networking
 #include "GameFramework/Actor.h"
 #include "Engine.h"
-#include "AnyCustomData.h"
-
 #include "C2IReceiverActor.generated.h"
 
 /************************************************************************/
@@ -36,14 +34,15 @@ public:
 		FDelegateTCPCallback OnTCPCallback;
 
 	UFUNCTION(BlueprintCallable, Category = "Car2IXS|Receiver")
-		bool TryToConnectToServer(FString _ip = "127.0.0.1", int32 _port = 12345);
+		virtual bool TryToConnectToServer(FString _ip = "127.0.0.1", int32 _port = 12345);
 
-	virtual void CheckForReceivedData();
 
 	FString StringFromBinaryArray(TArray<uint8> BinaryArray);
 protected:
 	FTimerHandle TimerHandleTest;
 	FCriticalSection MyMutex;
+
+	virtual void CheckForReceivedData();
 
 
 
