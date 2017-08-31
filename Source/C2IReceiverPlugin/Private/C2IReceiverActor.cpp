@@ -56,7 +56,7 @@ bool AC2IReceiverActor::TryToConnectToServer(FString _ip /*= "127.0.0.1"*/, int3
 
 	}
 	else
-		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString::Printf(TEXT("Shit.")));
+		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString::Printf(TEXT("Could not connect to server. Please try again.")));
 
 	return connected;
 }
@@ -67,6 +67,9 @@ void AC2IReceiverActor::CheckForReceivedData()
 		TArray<uint8> ReceivedData;
 
 		bool hasData = TCPClientSocket->HasPendingData(Size);
+
+	
+
 		if (hasData)
 		{
 			ReceivedData.Init(FMath::Min(Size, 65507u), Size);
