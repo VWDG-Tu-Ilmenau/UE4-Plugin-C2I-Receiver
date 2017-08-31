@@ -28,11 +28,34 @@ void AGBPReceiver::ConvertInputToGPB(std::string _incomingmsg)
 	bool parseSuccessful = InputGPB.ParseFromString(_incomingmsg);
 	if (!parseSuccessful)
 	{
-		//LOG(DEBUG) << "Can not convert GPB input stream to GPB object.\n" << InputGPB.DebugString();
+		UE_LOG(LogTemp, Warning, TEXT("Can not convert GPB input stream to GPB object.\n %s"), *FString(InputGPB.DebugString().c_str()));
+		return;
+	}
+	bool isInitialized = InputGPB.IsInitialized();
+	if (!isInitialized)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Can not initialize GPB input stream to GPB object.\n %s"), *FString(InputGPB.DebugString().c_str()));
+		return;
 	}
 
+	
+
+	std::string t = InputGPB.DebugString();
+	UE_LOG(LogTemp, Warning, TEXT("4 Payload: %s"), *FString(t.c_str()));
+
 	std::string miao = "";
-	InputGPB.SerializeToString(&miao);
+
+	std::string targetcommand= InputGPB.targetcommand();
+	std::string targetcomponent = InputGPB.targetcomponent();
+	std::string eventname = InputGPB.event().eventname();
+
+
+	float val = InputGPB.event().val_float();
+	
+	std::string valstring = std::to_string(val);
+	
+	//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString::SanitizeFloat((val)));
+	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString(valstring.c_str()));
 
 }
 
@@ -52,63 +75,81 @@ void AGBPReceiver::CheckForReceivedData()
 
 	bool hasData = TCPClientSocket->HasPendingData(Size);
 
-	//TODO: read 4bytes size; read(size) bytes content
+	//TODO: read bytes size; read(size) bytes content
 	if (hasData)
 	{
 		if (Size > headersize)
 		{
+			//UE_LOG(LogTemp, Warning, TEXT("##########################################"));
+
+
+
 			//////////////////////////////////////////////////////////////////////////
 			//read header
-			ReceivedData.Init(FMath::Min(Size, 65507u), headersize);
-
+			ReceivedData.Init(0, headersize); //init array for header size
 			int32 Read = 0;
 
 			TCPClientSocket->Recv(ReceivedData.GetData(), ReceivedData.Num(), Read);
-			//GEngine->AddOnScreenDebugMessage(1, 10, FColor::Green, "1. Number of Elements in Array: " + FString::FromInt(ReceivedData.Num()) + " : " + FString::FromInt(Read)); //should be 8
+			
+			if (Read != headersize)
+			{
+				UE_LOG(LogTemp, Warning, TEXT("%s"), "Header: Read different amount of bytes than int64: %f vs %f", Read, headersize);
+			}
 
-			FString Msg = StringFromBinaryArray(ReceivedData);
-			//GEngine->AddOnScreenDebugMessage(2, 10, FColor::Red, "2. Size to read for message: " + Msg); //should be 
-
-			//////////////////////////////////////////////////////////////////////////
-			//read payload
-			int64 payloadSize = FCString::Atoi(*Msg);
-			ReceivedData.Init(FMath::Min(Size, 65507u), payloadSize); //reinitializes the array with size provided by header
-
-			Read = 0;
-
-			TCPClientSocket->Recv(ReceivedData.GetData(), ReceivedData.Num(), Read);
-			//GEngine->AddOnScreenDebugMessage(3, 10, FColor::Blue, "3. Number of Elements in Array: " + FString::FromInt(ReceivedData.Num()) + " : " + FString::FromInt(Read)); //should be the same than Msg
+			FString header = StringFromBinaryArray(ReceivedData);
+			//UE_LOG(LogTemp, Warning, TEXT("Header: Read. Payload size: %s"), *header);
 
 		
-			//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString::Printf(TEXT("Data Read! %d"), ReceivedData.Num()));
+			
+			//////////////////////////////////////////////////////////////////////////
+			//How much payload is there?
+			if (!header.IsNumeric())
+			{
+				UE_LOG(LogTemp, Warning, TEXT("3 Header: Header is not numeric: %s"), *header);
+			}
+			int64 payloadSize = FCString::Strtoi64(*header, NULL, 10);;
+			
+			ReceivedData.Init(0, payloadSize); //reinitializes the array with size provided by header
+			Read = 0;
+			U//E_LOG(LogTemp, Warning, TEXT("Header: Converted Payload: %lld"), payloadSize);
+
+
+
+			//////////////////////////////////////////////////////////////////////////
+			//Read payload
+			TCPClientSocket->Recv(ReceivedData.GetData(), ReceivedData.Num(), Read);
 
 			if (ReceivedData.Num() <= 0)
 			{
-				//No Data Received
 				return;
 			}
-
+	
+			if (Read != payloadSize)
+			{
+				UE_LOG(LogTemp, Warning, TEXT("Payload: Read a different amount of bytes than payloadSize: %f  vs. %f"), Read, payloadSize);
+			}
+			InputGPB.ParseFromArray(ReceivedData.GetData(), ReceivedData.Num());
+			//UE_LOG(LogTemp, Warning, TEXT("Payload: Content: %s \n"), *FString(InputGPB.DebugString().c_str())); //Leads to Chinese characters
+			
+			
+			
 			//////////////////////////////////////////////////////////////////////////
 			//Convert binary array
-			// 
-			Msg = StringFromBinaryArray(ReceivedData);
-			//Create a string from a byte array!
+			//FString payload = StringFromBinaryArray(ReceivedData);//Create a string from a byte array!
+			//UE_LOG(LogTemp, Warning, TEXT("Payload: 2 Content: %s \n"), *payload);
 
+			//std::string MyStdString(TCHAR_TO_UTF8(*payload));
+			//UE_LOG(LogTemp, Warning, TEXT("Payload: 3 Content: %s \n"), MyStdString.c_str());
 
-			//TODO convert to GPB!
-
-			std::string MyStdString(TCHAR_TO_UTF8(*Msg));
-			ConvertInputToGPB(MyStdString);
-			
+			//ConvertInputToGPB(MyStdString);
+			//ConvertInputToGPB(MyStdString);
 			
 			//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, Msg);
-
-			OnTCPCallback.Broadcast(Msg);
+			float val = InputGPB.event().val_float();
+			
+			OnTCPCallback.Broadcast(FString::SanitizeFloat(val));
 		}
-
 	}
-
-
 }
 
 bool AGBPReceiver::TryToConnectToServer(FString _ip /*= "127.0.0.1"*/, int32 _port /*= 12345*/)
