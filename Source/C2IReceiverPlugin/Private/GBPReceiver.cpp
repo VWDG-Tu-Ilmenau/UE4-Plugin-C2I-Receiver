@@ -111,6 +111,7 @@ void AGBPReceiver::CheckForReceivedData()
 			{
 				UE_LOG(LogTemp, Warning, TEXT("Payload: Read a different amount of bytes than payloadSize: %f  vs. %f"), Read, payloadSize);
 			}
+
 			bool isOK = ConvertInputToGPB(ReceivedData);
 			
 			//UE_LOG(LogTemp, Warning, TEXT("Payload: Content: %s \n"), *FString(InputGPB.DebugString().c_str())); 

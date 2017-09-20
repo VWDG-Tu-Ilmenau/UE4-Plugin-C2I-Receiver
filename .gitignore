@@ -76,3 +76,5 @@ Binaries
 Intermediate
 
 ThirdParty/libprotobuf/include/google/protobuf/
+
+ThirdParty/libprotobuf/cmake/

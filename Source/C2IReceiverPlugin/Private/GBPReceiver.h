@@ -4,12 +4,9 @@
 
 
 #include "CoreMinimal.h"
-#include "../Public/C2IReceiverActor.h"
+#include "C2IReceiverActor.h"
 
-#include "AllowWindowsPlatformTypes.h"
-//#include "MessageTmp.pb.h"
-#include "MessageC2I_to_Dispatcher.pb.h"
-#include "HideWindowsPlatformTypes.h"
+#include "ProtobufHandler.h"
 
 #include "GBPReceiver.generated.h"
 
