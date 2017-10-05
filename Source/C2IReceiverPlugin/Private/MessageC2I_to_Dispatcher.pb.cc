@@ -2,12 +2,6 @@
 // source: MessageC2I_to_Dispatcher.proto
 
 #define INTERNAL_SUPPRESS_PROTOBUF_FIELD_DEPRECATION
-
-#pragma warning (disable : 4800) // forcing value to bool true or false
-#pragma warning (disable : 4125) // decimal digit terminates octal escape sequence
-#pragma warning (disable : 4647) // behavior change __is_pod has different value in previous version
-#pragma warning (disable : 4668) // 'symbol' is not defined as a preprocessor macro, replacing with '0' for 'directives'
-
 #include "MessageC2I_to_Dispatcher.pb.h"
 
 #include <algorithm>
