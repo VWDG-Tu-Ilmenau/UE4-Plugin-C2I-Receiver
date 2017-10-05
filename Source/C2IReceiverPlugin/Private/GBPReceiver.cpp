@@ -26,6 +26,7 @@ void AGBPReceiver::EndPlay(const EEndPlayReason::Type EndPlayReason)
 bool AGBPReceiver::ConvertInputToGPB(TArray<uint8> _receivedData)
 {
 	bool parseSuccessful = InputGPB.ParseFromArray(_receivedData.GetData(), _receivedData.Num());
+	
 
 	if (!parseSuccessful)
 	{
@@ -38,6 +39,7 @@ bool AGBPReceiver::ConvertInputToGPB(TArray<uint8> _receivedData)
 		UE_LOG(LogTemp, Warning, TEXT("Can not initialize GPB input stream to GPB object.\n %s"), *FString(InputGPB.DebugString().c_str()));
 		return false;
 	}
+	UE_LOG(LogTemp, Warning, TEXT("Received: \n %s"), *FString(InputGPB.DebugString().c_str()));
 
 	return true;
 }
@@ -94,7 +96,7 @@ void AGBPReceiver::CheckForReceivedData()
 			
 			ReceivedData.Init(0, payloadSize); //reinitializes the array with size provided by header
 			Read = 0;
-			//E_LOG(LogTemp, Warning, TEXT("Header: Converted Payload: %lld"), payloadSize);
+			UE_LOG(LogTemp, Warning, TEXT("Header: Converted Payload: %lld"), payloadSize);
 
 
 
@@ -114,15 +116,20 @@ void AGBPReceiver::CheckForReceivedData()
 
 			bool isOK = ConvertInputToGPB(ReceivedData);
 			
-			//UE_LOG(LogTemp, Warning, TEXT("Payload: Content: %s \n"), *FString(InputGPB.DebugString().c_str())); 
+
+
+			UE_LOG(LogTemp, Warning, TEXT("Payload: Content: %s \n"), *FString(InputGPB.DebugString().c_str())); 
 			
 			if (isOK)
 			{
 				float val = InputGPB.event().val_float();
-				OnTCPCallback.Broadcast(FString::SanitizeFloat(val));
+				OnTCPCallback.Broadcast(FString::SanitizeFloat(val));	
 			}
 			else
 				UE_LOG(LogTemp, Warning, TEXT("Protobuffer not right!"));
+
+				float val = InputGPB.event().val_float();
+				OnTCPCallback.Broadcast(FString::SanitizeFloat(val));
 			
 		}
 	}
