@@ -23,40 +23,25 @@ void AGBPReceiver::EndPlay(const EEndPlayReason::Type EndPlayReason)
 	Super::EndPlay(EndPlayReason);
 }
 
-void AGBPReceiver::ConvertInputToGPB(std::string _incomingmsg)
+bool AGBPReceiver::ConvertInputToGPB(TArray<uint8> _receivedData)
 {
-	bool parseSuccessful = InputGPB.ParseFromString(_incomingmsg);
+	bool parseSuccessful = InputGPB.ParseFromArray(_receivedData.GetData(), _receivedData.Num());
+	
+
 	if (!parseSuccessful)
 	{
 		UE_LOG(LogTemp, Warning, TEXT("Can not convert GPB input stream to GPB object.\n %s"), *FString(InputGPB.DebugString().c_str()));
-		return;
+		return false;
 	}
 	bool isInitialized = InputGPB.IsInitialized();
 	if (!isInitialized)
 	{
 		UE_LOG(LogTemp, Warning, TEXT("Can not initialize GPB input stream to GPB object.\n %s"), *FString(InputGPB.DebugString().c_str()));
-		return;
+		return false;
 	}
+	UE_LOG(LogTemp, Warning, TEXT("Received: \n %s"), *FString(InputGPB.DebugString().c_str()));
 
-	
-
-	std::string t = InputGPB.DebugString();
-	UE_LOG(LogTemp, Warning, TEXT("4 Payload: %s"), *FString(t.c_str()));
-
-	std::string miao = "";
-
-	std::string targetcommand= InputGPB.targetcommand();
-	std::string targetcomponent = InputGPB.targetcomponent();
-	std::string eventname = InputGPB.event().eventname();
-
-
-	float val = InputGPB.event().val_float();
-	
-	std::string valstring = std::to_string(val);
-	
-	//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString::SanitizeFloat((val)));
-	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString(valstring.c_str()));
-
+	return true;
 }
 
 // Called every frame
@@ -111,7 +96,7 @@ void AGBPReceiver::CheckForReceivedData()
 			
 			ReceivedData.Init(0, payloadSize); //reinitializes the array with size provided by header
 			Read = 0;
-			U//E_LOG(LogTemp, Warning, TEXT("Header: Converted Payload: %lld"), payloadSize);
+			UE_LOG(LogTemp, Warning, TEXT("Header: Converted Payload: %lld"), payloadSize);
 
 
 
@@ -128,26 +113,24 @@ void AGBPReceiver::CheckForReceivedData()
 			{
 				UE_LOG(LogTemp, Warning, TEXT("Payload: Read a different amount of bytes than payloadSize: %f  vs. %f"), Read, payloadSize);
 			}
-			InputGPB.ParseFromArray(ReceivedData.GetData(), ReceivedData.Num());
-			//UE_LOG(LogTemp, Warning, TEXT("Payload: Content: %s \n"), *FString(InputGPB.DebugString().c_str())); //Leads to Chinese characters
-			
-			
-			
-			//////////////////////////////////////////////////////////////////////////
-			//Convert binary array
-			//FString payload = StringFromBinaryArray(ReceivedData);//Create a string from a byte array!
-			//UE_LOG(LogTemp, Warning, TEXT("Payload: 2 Content: %s \n"), *payload);
 
-			//std::string MyStdString(TCHAR_TO_UTF8(*payload));
-			//UE_LOG(LogTemp, Warning, TEXT("Payload: 3 Content: %s \n"), MyStdString.c_str());
+			bool isOK = ConvertInputToGPB(ReceivedData);
+			
 
-			//ConvertInputToGPB(MyStdString);
-			//ConvertInputToGPB(MyStdString);
+
+			UE_LOG(LogTemp, Warning, TEXT("Payload: Content: %s \n"), *FString(InputGPB.DebugString().c_str())); 
 			
-			//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, Msg);
-			float val = InputGPB.event().val_float();
+			if (isOK)
+			{
+				float val = InputGPB.event().val_float();
+				OnTCPCallback.Broadcast(FString::SanitizeFloat(val));	
+			}
+			else
+				UE_LOG(LogTemp, Warning, TEXT("Protobuffer not right!"));
+
+				float val = InputGPB.event().val_float();
+				OnTCPCallback.Broadcast(FString::SanitizeFloat(val));
 			
-			OnTCPCallback.Broadcast(FString::SanitizeFloat(val));
 		}
 	}
 }

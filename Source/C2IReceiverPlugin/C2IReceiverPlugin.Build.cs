@@ -73,7 +73,7 @@ public class C2IReceiverPlugin : ModuleRules
             string LibrariesPath = Path.Combine(ThirdPartyPath, "libprotobuf", "lib");
 
             Console.WriteLine("... LibrariesPath -> " + LibrariesPath);
-            PublicAdditionalLibraries.Add(Path.Combine(LibrariesPath, "libprotobufd" + ".lib"));
+            PublicAdditionalLibraries.Add(Path.Combine(LibrariesPath, "libprotobuf" + ".lib"));
         }
 
         if (isLibrarySupported)
