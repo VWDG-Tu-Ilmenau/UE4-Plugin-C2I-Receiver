@@ -78,6 +78,28 @@ void UGPBDataDispatcher::InsertValueIntoRegistry(c2ipb::Call _inputGPB)
 	CallValueRegistry.GenerateKeyArray(myArray);
 }
 
+int UGPBDataDispatcher::GetIntValueFromRegistry(FString _targetcomponent, FString _targetcommand)
+{
+	FScopeLock lock(&MapCriticalSection);
+	if (CallValueRegistry.Num() == 0)
+		return -555;
+
+	bool containsValue = CallValueRegistry.Contains(TPair<FString, FString>(_targetcomponent, _targetcommand));
+
+
+	c2ipb::Call** tmpGPBptr = CallValueRegistry.Find(TPair<FString, FString>(_targetcomponent, _targetcommand));
+
+	if (tmpGPBptr != nullptr)
+	{
+		c2ipb::Call* tmpGPB = *tmpGPBptr;
+		return tmpGPB->event().val_int();
+	}
+	else
+	{
+		return -999;
+	}
+}
+
 float UGPBDataDispatcher::GetFloatValueFromRegistry(FString _targetcomponent, FString _targetcommand)
 {
 	FScopeLock lock(&MapCriticalSection);
