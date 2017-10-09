@@ -48,5 +48,5 @@ private:
 	FCriticalSection FloatCriticalSection;
 
 	FCriticalSection MapCriticalSection;
-	TMap<IDofVC, c2ipb::Call> CallValueRegistry;
+	TMap<IDofVC, c2ipb::Call*> CallValueRegistry;
 };

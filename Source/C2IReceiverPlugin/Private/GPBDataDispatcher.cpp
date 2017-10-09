@@ -52,14 +52,50 @@ float UGPBDataDispatcher::GetValueFloat()
 void UGPBDataDispatcher::InsertValueIntoRegistry(c2ipb::Call _inputGPB)
 {
 	FScopeLock lock(&MapCriticalSection);
-	CallValueRegistry.Add(TPair<FString, FString>(_inputGPB.targetcommand().c_str(), _inputGPB.targetcomponent().c_str()), _inputGPB);
+
+	c2ipb::Call** tmpGPBptr = CallValueRegistry.Find(TPair<FString, FString>(_inputGPB.targetcomponent().c_str(), _inputGPB.targetcommand().c_str()));
+	
+
+	if (tmpGPBptr != nullptr)
+	{
+		c2ipb::Call* tmpGPB = *tmpGPBptr;
+		tmpGPB->CopyFrom(_inputGPB);
+		UE_LOG(LogTemp, Warning, TEXT("Replace"));
+		bool containsValue = CallValueRegistry.Contains(TPair<FString, FString>(_inputGPB.targetcomponent().c_str(), _inputGPB.targetcommand().c_str()));
+
+	}
+	else
+	{
+		c2ipb::Call* tmp2 = new c2ipb::Call();
+		tmp2->CopyFrom(_inputGPB);
+		CallValueRegistry.Add(TPair<FString, FString>(tmp2->targetcomponent().c_str(), tmp2->targetcommand().c_str()), tmp2);
+		UE_LOG(LogTemp, Warning, TEXT("Add"));
+
+		bool containsValue = CallValueRegistry.Contains(TPair<FString, FString>(_inputGPB.targetcomponent().c_str(), _inputGPB.targetcommand().c_str()));
+		
+	}
+	TArray<TPair<FString, FString>> myArray;
+	CallValueRegistry.GenerateKeyArray(myArray);
 }
 
 float UGPBDataDispatcher::GetFloatValueFromRegistry(FString _targetcomponent, FString _targetcommand)
 {
 	FScopeLock lock(&MapCriticalSection);
-	c2ipb::Call* _tmpGPB = CallValueRegistry.Find(TPair<FString, FString>(_targetcomponent, _targetcommand));
-	if(_tmpGPB != nullptr)
-		val_float = _tmpGPB->event().val_float();
-	return val_float;
+	if (CallValueRegistry.Num() == 0)
+		return -777;
+
+	bool containsValue = CallValueRegistry.Contains(TPair<FString, FString>(_targetcomponent, _targetcommand));
+
+
+	c2ipb::Call** tmpGPBptr = CallValueRegistry.Find(TPair<FString, FString>(_targetcomponent, _targetcommand));
+	
+	if (tmpGPBptr != nullptr)
+	{
+		c2ipb::Call* tmpGPB = *tmpGPBptr;
+		return tmpGPB->event().val_float();
+	}
+	else
+	{
+		return -666;
+	}		
 }

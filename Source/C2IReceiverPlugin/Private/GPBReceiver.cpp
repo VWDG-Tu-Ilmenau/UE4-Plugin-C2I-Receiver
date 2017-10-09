@@ -126,7 +126,7 @@ void AGPBPReceiver::CheckForReceivedData()
 			{
 				//insert GPB into DataStructure
 				float val = InputGPB.event().val_float();
-				GPBDataDispatcher_->SetValue(val);
+				//GPBDataDispatcher_->SetValue(val);
 				GPBDataDispatcher_->InsertValueIntoRegistry(InputGPB);
 				OnTCPCallback.Broadcast(FString::SanitizeFloat(val));	
 			}
