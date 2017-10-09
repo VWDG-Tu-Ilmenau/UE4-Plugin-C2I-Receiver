@@ -1,29 +1,31 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 #include "C2IReceiverPlugin.h"
-#include "GBPReceiver.h"
+#include "GPBReceiver.h"
 
 
 // Sets default values
-AGBPReceiver::AGBPReceiver()
+AGPBPReceiver::AGPBPReceiver()
 {
 	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = false;
+	
+	GPBDataDispatcher_ = CreateDefaultSubobject<UGPBDataDispatcher>(TEXT("GPBDataDispatcher"));
 }
 
 // Called when the game starts or when spawned
-void AGBPReceiver::BeginPlay()
+void AGPBPReceiver::BeginPlay()
 {
 	Super::BeginPlay();
 
 }
 
-void AGBPReceiver::EndPlay(const EEndPlayReason::Type EndPlayReason)
+void AGPBPReceiver::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
 	Super::EndPlay(EndPlayReason);
 }
 
-bool AGBPReceiver::ConvertInputToGPB(TArray<uint8> _receivedData)
+bool AGPBPReceiver::ConvertInputToGPB(TArray<uint8> _receivedData)
 {
 	bool parseSuccessful = InputGPB.ParseFromArray(_receivedData.GetData(), _receivedData.Num());
 	
@@ -39,19 +41,19 @@ bool AGBPReceiver::ConvertInputToGPB(TArray<uint8> _receivedData)
 		UE_LOG(LogTemp, Warning, TEXT("Can not initialize GPB input stream to GPB object.\n %s"), *FString(InputGPB.DebugString().c_str()));
 		return false;
 	}
-	UE_LOG(LogTemp, Warning, TEXT("Received: \n %s"), *FString(InputGPB.DebugString().c_str()));
+	//UE_LOG(LogTemp, Warning, TEXT("Received: \n %s"), *FString(InputGPB.DebugString().c_str()));
 
 	return true;
 }
 
 // Called every frame
-void AGBPReceiver::Tick(float DeltaTime)
+void AGPBPReceiver::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
 }
 
-void AGBPReceiver::CheckForReceivedData()
+void AGPBPReceiver::CheckForReceivedData()
 {
 	uint32 Size;
 	TArray<uint8> ReceivedData;
@@ -90,7 +92,7 @@ void AGBPReceiver::CheckForReceivedData()
 			//How much payload is there?
 			if (!header.IsNumeric())
 			{
-				UE_LOG(LogTemp, Warning, TEXT("3 Header: Header is not numeric: %s"), *header);
+				UE_LOG(LogTemp, Warning, TEXT("Header: Header is not numeric: %s"), *header);
 			}
 			int64 payloadSize = FCString::Strtoi64(*header, NULL, 10);;
 			
@@ -118,24 +120,26 @@ void AGBPReceiver::CheckForReceivedData()
 			
 
 
-			UE_LOG(LogTemp, Warning, TEXT("Payload: Content: %s \n"), *FString(InputGPB.DebugString().c_str())); 
+			//UE_LOG(LogTemp, Warning, TEXT("Payload: Content: %s \n"), *FString(InputGPB.DebugString().c_str())); 
 			
 			if (isOK)
 			{
+				//insert GPB into DataStructure
 				float val = InputGPB.event().val_float();
+				//GPBDataDispatcher_->SetValue(val);
+				GPBDataDispatcher_->InsertValueIntoRegistry(InputGPB);
 				OnTCPCallback.Broadcast(FString::SanitizeFloat(val));	
 			}
 			else
 				UE_LOG(LogTemp, Warning, TEXT("Protobuffer not right!"));
-
-				float val = InputGPB.event().val_float();
-				OnTCPCallback.Broadcast(FString::SanitizeFloat(val));
+				UE_LOG(LogTemp, Warning, TEXT("Payload: Content: %s \n"), *FString(InputGPB.DebugString().c_str()));
+				
 			
 		}
 	}
 }
 
-bool AGBPReceiver::TryToConnectToServer(FString _ip /*= "127.0.0.1"*/, int32 _port /*= 12345*/)
+bool AGPBPReceiver::TryToConnectToServer(FString _ip /*= "127.0.0.1"*/, int32 _port /*= 12345*/)
 {
 	TCPClientSocket = ISocketSubsystem::Get(PLATFORM_SOCKETSUBSYSTEM)->CreateSocket(NAME_Stream, TEXT("default"), false);
 
@@ -158,7 +162,7 @@ bool AGBPReceiver::TryToConnectToServer(FString _ip /*= "127.0.0.1"*/, int32 _po
 	{
 		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString::Printf(TEXT("Connected!")));
 
-		GetWorldTimerManager().SetTimer(TimerHandleTest, this, &AGBPReceiver::CheckForReceivedData, 0.01f, true);
+		GetWorldTimerManager().SetTimer(TimerHandleTest, this, &AGPBPReceiver::CheckForReceivedData, 0.01f, true);
 
 
 	}
@@ -166,5 +170,10 @@ bool AGBPReceiver::TryToConnectToServer(FString _ip /*= "127.0.0.1"*/, int32 _po
 		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString::Printf(TEXT("Could not connect to server. Please try again.")));
 
 	return connected;
+}
+
+UGPBDataDispatcher* AGPBPReceiver::GetGPBDataDispatcherRef()
+{
+	return GPBDataDispatcher_;
 }
 

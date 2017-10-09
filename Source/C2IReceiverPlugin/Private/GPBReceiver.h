@@ -7,25 +7,28 @@
 #include "C2IReceiverActor.h"
 
 #include "ProtobufHandler.h"
+#include "GPBDataDispatcher.h"
 
-#include "GBPReceiver.generated.h"
+#include "GPBReceiver.generated.h"
 
 UCLASS()
-class AGBPReceiver : public AC2IReceiverActor
+class AGPBPReceiver : public AC2IReceiverActor
 {
 	GENERATED_BODY()
 	
 public:	
 	// Sets default values for this actor's properties
-	AGBPReceiver();
+	AGPBPReceiver();
 
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 	virtual void CheckForReceivedData() override;
 
-	UFUNCTION(BlueprintCallable, Category = "Car2IXS|Receiver")
+	UFUNCTION(BlueprintCallable, Category = "Car2IXS|GPBReceiver")
 		virtual bool TryToConnectToServer(FString _ip = "127.0.0.1", int32 _port = 12345) override;
 
+	UFUNCTION(BlueprintCallable, Category = "Car2IXS|GPBReceiver")
+		UGPBDataDispatcher* GetGPBDataDispatcherRef();
 
 protected:
 	// Called when the game starts or when spawned
@@ -35,5 +38,7 @@ protected:
 private:
 	bool ConvertInputToGPB(TArray<uint8> _receivedData);
 	c2ipb::Call InputGPB;
+
+	UGPBDataDispatcher* GPBDataDispatcher_;
 
 };
