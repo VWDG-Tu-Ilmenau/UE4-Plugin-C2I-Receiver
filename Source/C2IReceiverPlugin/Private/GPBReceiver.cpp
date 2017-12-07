@@ -29,7 +29,6 @@ bool AGPBPReceiver::ConvertInputToGPB(TArray<uint8> _receivedData)
 {
 	bool parseSuccessful = InputGPB.ParseFromArray(_receivedData.GetData(), _receivedData.Num());
 	
-
 	if (!parseSuccessful)
 	{
 		UE_LOG(LogTemp, Warning, TEXT("Can not convert GPB input stream to GPB object.\n %s"), *FString(InputGPB.DebugString().c_str()));
@@ -58,7 +57,7 @@ void AGPBPReceiver::CheckForReceivedData()
 	uint32 Size;
 	TArray<uint8> ReceivedData;
 
-	uint32 headersize = sizeof(int64) ;
+	uint32 headersize = sizeof(int32) ;
 
 	bool hasData = TCPClientSocket->HasPendingData(Size);
 
@@ -67,10 +66,6 @@ void AGPBPReceiver::CheckForReceivedData()
 	{
 		if (Size > headersize)
 		{
-			//UE_LOG(LogTemp, Warning, TEXT("##########################################"));
-
-
-
 			//////////////////////////////////////////////////////////////////////////
 			//read header
 			ReceivedData.Init(0, headersize); //init array for header size
@@ -80,27 +75,31 @@ void AGPBPReceiver::CheckForReceivedData()
 			
 			if (Read != headersize)
 			{
-				UE_LOG(LogTemp, Warning, TEXT("%s"), "Header: Read different amount of bytes than int64: %f vs %f", Read, headersize);
+				UE_LOG(LogTemp, Warning, TEXT("%s"), "Header: Read different amount of bytes than int32: %f vs %f", Read, headersize);
 			}
 
-			FString header = StringFromBinaryArray(ReceivedData);
+			FString header = StringFromBinaryArray(ReceivedData); //this is the one used by WoCarZ
 			//UE_LOG(LogTemp, Warning, TEXT("Header: Read. Payload size: %s"), *header);
-
-		
 			
 			//////////////////////////////////////////////////////////////////////////
 			//How much payload is there?
+			int32 payloadSize = 0;
 			if (!header.IsNumeric())
 			{
-				UE_LOG(LogTemp, Warning, TEXT("Header: Header is not numeric: %s"), *header);
+				UE_LOG(LogTemp, Warning, TEXT("Header: Header is not numeric: %s. Using fallback method."), *header);
+				payloadSize = int32(	//this is the one used by C2I_Socket Plugin
+					(unsigned char)(ReceivedData[3]) << 24 | 
+					(unsigned char)(ReceivedData[2]) << 16 |
+					(unsigned char)(ReceivedData[1]) << 8 |
+					(unsigned char)(ReceivedData[0]));
 			}
-			int64 payloadSize = FCString::Strtoi64(*header, NULL, 10);;
-			
-			ReceivedData.Init(0, payloadSize); //reinitializes the array with size provided by header
+			else
+			{
+				payloadSize = FCString::Atoi(*header);
+			}
+
+			ReceivedData.Init(0, payloadSize); //Reinitializes the array with size provided by header
 			Read = 0;
-			UE_LOG(LogTemp, Warning, TEXT("Header: Converted Payload: %lld"), payloadSize);
-
-
 
 			//////////////////////////////////////////////////////////////////////////
 			//Read payload
@@ -113,7 +112,7 @@ void AGPBPReceiver::CheckForReceivedData()
 	
 			if (Read != payloadSize)
 			{
-				UE_LOG(LogTemp, Warning, TEXT("Payload: Read a different amount of bytes than payloadSize: %f  vs. %f"), Read, payloadSize);
+				UE_LOG(LogTemp, Warning, TEXT("Payload: Read a different amount of bytes than payloadSize: %d  vs. %d"), Read, payloadSize);
 			}
 
 			bool isOK = ConvertInputToGPB(ReceivedData);
@@ -124,15 +123,20 @@ void AGPBPReceiver::CheckForReceivedData()
 			
 			if (isOK)
 			{
+				
+				//this value is only for debugging purposes. Blueprints access values via the dispatcher.
+				float val = InputGPB.event().val_float(); 
+				OnTCPCallback.Broadcast(FString::SanitizeFloat(val));
+				
 				//insert GPB into DataStructure
-				float val = InputGPB.event().val_float();
-				//GPBDataDispatcher_->SetValue(val);
 				GPBDataDispatcher_->InsertValueIntoRegistry(InputGPB);
-				OnTCPCallback.Broadcast(FString::SanitizeFloat(val));	
+				
 			}
 			else
+			{
 				UE_LOG(LogTemp, Warning, TEXT("Protobuffer not right!"));
 				UE_LOG(LogTemp, Warning, TEXT("Payload: Content: %s \n"), *FString(InputGPB.DebugString().c_str()));
+			}
 				
 			
 		}
