@@ -38,7 +38,7 @@ void UGPBDataDispatcher::SetValue(float _val)
 {
 	FScopeLock lock(&FloatCriticalSection); 
 	
-	UE_LOG(LogTemp, Warning, TEXT("Set: %f"), val_float);
+	//UE_LOG(C2SLog, Warning, TEXT("Set: %f"), val_float);
 	val_float = _val;
 
 }
@@ -46,7 +46,7 @@ void UGPBDataDispatcher::SetValue(float _val)
 float UGPBDataDispatcher::GetValueFloat()
 {
 	FScopeLock lock(&FloatCriticalSection);
-	UE_LOG(LogTemp, Warning, TEXT("Get: %f"), val_float);
+	//UE_LOG(C2SLog, Warning, TEXT("Get: %f"), val_float);
 	return val_float;
 }
 
@@ -61,7 +61,7 @@ void UGPBDataDispatcher::InsertValueIntoRegistry(c2ipb::Call _inputGPB)
 	{
 		c2ipb::Call* tmpGPB = *tmpGPBptr;
 		tmpGPB->CopyFrom(_inputGPB);
-		UE_LOG(LogTemp, Warning, TEXT("Replace"));
+		//UE_LOG(C2SLog, Warning, TEXT("Replace"));
 		bool containsValue = CallValueRegistry.Contains(TPair<FString, FString>(_inputGPB.targetcomponent().c_str(), _inputGPB.targetcommand().c_str()));
 
 	}
@@ -70,7 +70,7 @@ void UGPBDataDispatcher::InsertValueIntoRegistry(c2ipb::Call _inputGPB)
 		c2ipb::Call* tmp2 = new c2ipb::Call();
 		tmp2->CopyFrom(_inputGPB);
 		CallValueRegistry.Add(TPair<FString, FString>(tmp2->targetcomponent().c_str(), tmp2->targetcommand().c_str()), tmp2);
-		UE_LOG(LogTemp, Warning, TEXT("Add"));
+		UE_LOG(C2SLog, Warning, TEXT("Add"));
 
 		bool containsValue = CallValueRegistry.Contains(TPair<FString, FString>(_inputGPB.targetcomponent().c_str(), _inputGPB.targetcommand().c_str()));
 		

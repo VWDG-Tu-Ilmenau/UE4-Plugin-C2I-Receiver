@@ -31,16 +31,16 @@ bool AGPBPReceiver::ConvertInputToGPB(TArray<uint8> _receivedData)
 	
 	if (!parseSuccessful)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("Can not convert GPB input stream to GPB object.\n %s"), *FString(InputGPB.DebugString().c_str()));
+		UE_LOG(C2SLog, Warning, TEXT("Can not convert GPB input stream to GPB object.\n %s"), *FString(InputGPB.DebugString().c_str()));
 		return false;
 	}
 	bool isInitialized = InputGPB.IsInitialized();
 	if (!isInitialized)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("Can not initialize GPB input stream to GPB object.\n %s"), *FString(InputGPB.DebugString().c_str()));
+		UE_LOG(C2SLog, Warning, TEXT("Can not initialize GPB input stream to GPB object.\n %s"), *FString(InputGPB.DebugString().c_str()));
 		return false;
 	}
-	//UE_LOG(LogTemp, Warning, TEXT("Received: \n %s"), *FString(InputGPB.DebugString().c_str()));
+	//UE_LOG(C2SLog, Warning, TEXT("Received: \n %s"), *FString(InputGPB.DebugString().c_str()));
 
 	return true;
 }
@@ -75,18 +75,18 @@ void AGPBPReceiver::CheckForReceivedData()
 			
 			if (Read != headersize)
 			{
-				UE_LOG(LogTemp, Warning, TEXT("%s"), "Header: Read different amount of bytes than int32: %f vs %f", Read, headersize);
+				UE_LOG(C2SLog, Warning, TEXT("%s"), "Header: Read different amount of bytes than int32: %f vs %f", Read, headersize);
 			}
 
 			FString header = StringFromBinaryArray(ReceivedData); //this is the one used by WoCarZ
-			//UE_LOG(LogTemp, Warning, TEXT("Header: Read. Payload size: %s"), *header);
+			//UE_LOG(C2SLog, Warning, TEXT("Header: Read. Payload size: %s"), *header);
 			
 			//////////////////////////////////////////////////////////////////////////
 			//How much payload is there?
 			int32 payloadSize = 0;
 			if (!header.IsNumeric())
 			{
-				UE_LOG(LogTemp, Warning, TEXT("Header: Header is not numeric: %s. Using fallback method."), *header);
+				UE_LOG(C2SLog, Warning, TEXT("Header: Header is not numeric: %s. Using fallback method."), *header);
 				payloadSize = int32(	//this is the one used by C2I_Socket Plugin
 					(unsigned char)(ReceivedData[3]) << 24 | 
 					(unsigned char)(ReceivedData[2]) << 16 |
@@ -112,14 +112,14 @@ void AGPBPReceiver::CheckForReceivedData()
 	
 			if (Read != payloadSize)
 			{
-				UE_LOG(LogTemp, Warning, TEXT("Payload: Read a different amount of bytes than payloadSize: %d  vs. %d"), Read, payloadSize);
+				UE_LOG(C2SLog, Warning, TEXT("Payload: Read a different amount of bytes than payloadSize: %d  vs. %d"), Read, payloadSize);
 			}
 
 			bool isOK = ConvertInputToGPB(ReceivedData);
 			
 
 
-			//UE_LOG(LogTemp, Warning, TEXT("Payload: Content: %s \n"), *FString(InputGPB.DebugString().c_str())); 
+			//UE_LOG(C2SLog, Warning, TEXT("Payload: Content: %s \n"), *FString(InputGPB.DebugString().c_str())); 
 			
 			if (isOK)
 			{
@@ -134,8 +134,8 @@ void AGPBPReceiver::CheckForReceivedData()
 			}
 			else
 			{
-				UE_LOG(LogTemp, Warning, TEXT("Protobuffer not right!"));
-				UE_LOG(LogTemp, Warning, TEXT("Payload: Content: %s \n"), *FString(InputGPB.DebugString().c_str()));
+				UE_LOG(C2SLog, Warning, TEXT("Protobuffer not right!"));
+				UE_LOG(C2SLog, Warning, TEXT("Payload: Content: %s"), *FString(InputGPB.DebugString().c_str()));
 			}
 				
 			
