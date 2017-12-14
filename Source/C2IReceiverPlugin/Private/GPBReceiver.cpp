@@ -45,6 +45,8 @@ bool AGPBPReceiver::ConvertInputToGPB(TArray<uint8> _receivedData)
 	return true;
 }
 
+
+
 // Called every frame
 void AGPBPReceiver::Tick(float DeltaTime)
 {
@@ -77,43 +79,10 @@ void AGPBPReceiver::CheckForReceivedData()
 				UE_LOG(C2SLog, Warning, TEXT("%s"), "Header: Read different amount of bytes than int32: %d vs %d", Read, headersize);
 			}
 
-			FString header = StringFromBinaryArray(ReceivedData); //this is the one used by WoCarZ
-
-			UE_LOG(C2SLog, Warning, TEXT("Header: Read. Payload size: %s"), *header);
-			
 			//////////////////////////////////////////////////////////////////////////
-			//How much payload is there?
-			int32 payloadSize = 0;
-			if (!header.IsNumeric())
-			{
-				//UE_LOG(C2SLog, Warning, TEXT("Header: Header is not numeric: %s. Using fallback method."), *header);
-				payloadSize = int32(	//this is the one used by C2I_Socket Plugin
-					(unsigned char)(ReceivedData[3]) << 24 | 
-					(unsigned char)(ReceivedData[2]) << 16 |
-					(unsigned char)(ReceivedData[1]) << 8 |
-					(unsigned char)(ReceivedData[0]));
-			}
-			else
-			{
-				payloadSize = FCString::Atoi(*header);
-			}
-
-			if (payloadSize == 0 || (int32)Size < payloadSize)
-			{
-				payloadSize = int32(	//this is the one used by C2I_Socket Plugin
-					(unsigned char)(ReceivedData[3]) << 24 | 
-					(unsigned char)(ReceivedData[2]) << 16 |
-					(unsigned char)(ReceivedData[1]) << 8 |
-					(unsigned char)(ReceivedData[0]));
-//				payloadSize = FCString::Atoi(*header[0]);
-				
-				if (payloadSize == 0 || (int32)Size < payloadSize)
-				{
-					UE_LOG(C2SLog, Warning, TEXT("%s"), "Payload size is zero or above total size.");
-					return;
-				}
-			}
-
+			//How much payload is there?	
+			FString header = StringFromBinaryArray(ReceivedData); //this is the one used by WoCarZ
+			int32 payloadSize = GetPayloadSize(header, ReceivedData, Size);
 			ReceivedData.Init(0, payloadSize); //Reinitializes the array with size provided by header
 			Read = 0;
 
@@ -130,31 +99,16 @@ void AGPBPReceiver::CheckForReceivedData()
 			{
 				UE_LOG(C2SLog, Warning, TEXT("Payload: Read a different amount of bytes than payloadSize: %d  vs. %d"), Read, payloadSize);
 			}
-
 			bool isOK = ConvertInputToGPB(ReceivedData);
 			
-
-
-			//UE_LOG(C2SLog, Warning, TEXT("Payload: Content: %s \n"), *FString(InputGPB.DebugString().c_str())); 
-			
 			if (isOK)
-			{
-				
-				//this value is only for debugging purposes. Blueprints access values via the dispatcher.
-				//float val = InputGPB.event().val_float(); 
-				//OnTCPCallback.Broadcast(FString::SanitizeFloat(val));
-				
-				//insert GPB into DataStructure
-				GPBDataDispatcher_->InsertValueIntoRegistry(InputGPB);
-				
+			{	
+				GPBDataDispatcher_->InsertValueIntoRegistry(InputGPB);	
 			}
 			else
 			{
 				UE_LOG(C2SLog, Warning, TEXT("Protobuffer not right!"));
-				UE_LOG(C2SLog, Warning, TEXT("Payload: Content: %s"), *FString(InputGPB.DebugString().c_str()));
 			}
-				
-			
 		}
 	}
 }
@@ -196,3 +150,39 @@ UGPBDataDispatcher* AGPBPReceiver::GetGPBDataDispatcherRef()
 {
 	return GPBDataDispatcher_;
 }
+
+int32 AGPBPReceiver::GetPayloadSize(FString header, TArray<uint8> ReceivedData, uint32 Size)
+{
+	int32 payloadSize = -1;
+	if (!header.IsNumeric()) 
+	{
+		payloadSize = GetIntFromTArray(ReceivedData);
+	}
+	else
+	{
+		payloadSize = FCString::Atoi(*header);
+	}
+
+	if (payloadSize == 0 || payloadSize > (int32)Size)
+	{
+		payloadSize = GetIntFromTArray(ReceivedData);
+
+		if (payloadSize == 0 || (int32)Size < payloadSize)
+		{
+			UE_LOG(C2SLog, Warning, TEXT("%s"), "Payload size is zero or above total size. Trying my best by setting payload size == Size");
+			payloadSize = Size;
+		}
+	}
+
+	return payloadSize;
+}
+
+int32 AGPBPReceiver::GetIntFromTArray(TArray<uint8> ReceivedData)
+{
+	return	int32(	//this is the one used by C2I_Socket Plugin
+		(unsigned char)(ReceivedData[3]) << 24 |
+		(unsigned char)(ReceivedData[2]) << 16 |
+		(unsigned char)(ReceivedData[1]) << 8 |
+		(unsigned char)(ReceivedData[0]));
+}
+
