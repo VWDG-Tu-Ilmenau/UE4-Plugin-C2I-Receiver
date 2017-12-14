@@ -18,3 +18,5 @@ void FC2IReceiverPluginModule::ShutdownModule()
 #undef LOCTEXT_NAMESPACE
 	
 IMPLEMENT_MODULE(FC2IReceiverPluginModule, C2IReceiverPlugin)
+
+DEFINE_LOG_CATEGORY_STATIC(C2SLog, Log, All);

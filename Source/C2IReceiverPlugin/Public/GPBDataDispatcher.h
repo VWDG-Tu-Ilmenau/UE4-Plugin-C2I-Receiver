@@ -46,6 +46,10 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Car2IXS|GPBReceiver")
 		float GetFloatValueFromRegistry(FString _targetcomponent, FString _targetcommand);
 
+	//Retrieves the GPB associated with the key and returns the according FString value. If no key was found, returns last FString value. Is thread-safe via critical sections.
+	UFUNCTION(BlueprintCallable, Category = "Car2IXS|GPBReceiver")
+		FString GetStringValueFromRegistry(FString _targetComponent, FString _targetcommand);
+
 private:
 	float val_float;
 

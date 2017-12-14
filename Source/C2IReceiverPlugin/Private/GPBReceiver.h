@@ -41,4 +41,6 @@ private:
 
 	UGPBDataDispatcher* GPBDataDispatcher_;
 
+	int32 GetPayloadSize(FString header, TArray<uint8> ReceivedData, uint32 Size);
+	int32 GetIntFromTArray(TArray<uint8> ReceivedData);
 };
