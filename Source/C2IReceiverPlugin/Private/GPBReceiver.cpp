@@ -61,7 +61,6 @@ void AGPBPReceiver::CheckForReceivedData()
 
 	bool hasData = TCPClientSocket->HasPendingData(Size);
 
-	//TODO: read bytes size; read(size) bytes content
 	if (hasData)
 	{
 		if (Size > headersize)
@@ -75,18 +74,19 @@ void AGPBPReceiver::CheckForReceivedData()
 			
 			if (Read != headersize)
 			{
-				UE_LOG(C2SLog, Warning, TEXT("%s"), "Header: Read different amount of bytes than int32: %f vs %f", Read, headersize);
+				UE_LOG(C2SLog, Warning, TEXT("%s"), "Header: Read different amount of bytes than int32: %d vs %d", Read, headersize);
 			}
 
 			FString header = StringFromBinaryArray(ReceivedData); //this is the one used by WoCarZ
-			//UE_LOG(C2SLog, Warning, TEXT("Header: Read. Payload size: %s"), *header);
+
+			UE_LOG(C2SLog, Warning, TEXT("Header: Read. Payload size: %s"), *header);
 			
 			//////////////////////////////////////////////////////////////////////////
 			//How much payload is there?
 			int32 payloadSize = 0;
 			if (!header.IsNumeric())
 			{
-				UE_LOG(C2SLog, Warning, TEXT("Header: Header is not numeric: %s. Using fallback method."), *header);
+				//UE_LOG(C2SLog, Warning, TEXT("Header: Header is not numeric: %s. Using fallback method."), *header);
 				payloadSize = int32(	//this is the one used by C2I_Socket Plugin
 					(unsigned char)(ReceivedData[3]) << 24 | 
 					(unsigned char)(ReceivedData[2]) << 16 |
@@ -96,6 +96,22 @@ void AGPBPReceiver::CheckForReceivedData()
 			else
 			{
 				payloadSize = FCString::Atoi(*header);
+			}
+
+			if (payloadSize == 0 || (int32)Size < payloadSize)
+			{
+				payloadSize = int32(	//this is the one used by C2I_Socket Plugin
+					(unsigned char)(ReceivedData[3]) << 24 | 
+					(unsigned char)(ReceivedData[2]) << 16 |
+					(unsigned char)(ReceivedData[1]) << 8 |
+					(unsigned char)(ReceivedData[0]));
+//				payloadSize = FCString::Atoi(*header[0]);
+				
+				if (payloadSize == 0 || (int32)Size < payloadSize)
+				{
+					UE_LOG(C2SLog, Warning, TEXT("%s"), "Payload size is zero or above total size.");
+					return;
+				}
 			}
 
 			ReceivedData.Init(0, payloadSize); //Reinitializes the array with size provided by header
@@ -125,8 +141,8 @@ void AGPBPReceiver::CheckForReceivedData()
 			{
 				
 				//this value is only for debugging purposes. Blueprints access values via the dispatcher.
-				float val = InputGPB.event().val_float(); 
-				OnTCPCallback.Broadcast(FString::SanitizeFloat(val));
+				//float val = InputGPB.event().val_float(); 
+				//OnTCPCallback.Broadcast(FString::SanitizeFloat(val));
 				
 				//insert GPB into DataStructure
 				GPBDataDispatcher_->InsertValueIntoRegistry(InputGPB);
@@ -180,4 +196,3 @@ UGPBDataDispatcher* AGPBPReceiver::GetGPBDataDispatcherRef()
 {
 	return GPBDataDispatcher_;
 }
-
