@@ -34,6 +34,7 @@ void UGPBDataDispatcher::TickComponent(float DeltaTime, ELevelTick TickType, FAc
 	// ...
 }
 
+//deprecated
 void UGPBDataDispatcher::SetValue(float _val)
 {
 	FScopeLock lock(&FloatCriticalSection); 
@@ -43,6 +44,7 @@ void UGPBDataDispatcher::SetValue(float _val)
 
 }
 
+//deprecated
 float UGPBDataDispatcher::GetValueFloat()
 {
 	FScopeLock lock(&FloatCriticalSection);
@@ -121,4 +123,32 @@ float UGPBDataDispatcher::GetFloatValueFromRegistry(FString _targetcomponent, FS
 	{
 		return -666;
 	}		
+}
+
+FString UGPBDataDispatcher::GetStringValueFromRegistry(FString _targetcomponent, FString _targetcommand)
+{
+
+	FScopeLock lock(&MapCriticalSection);
+	if (CallValueRegistry.Num() == 0)
+	{
+		std::string tmp = "registry empty";
+		return FString(UTF8_TO_TCHAR(tmp.c_str()));
+	}
+
+	bool containsValue = CallValueRegistry.Contains(TPair<FString, FString>(_targetcomponent, _targetcommand));
+
+
+	c2ipb::Call** tmpGPBptr = CallValueRegistry.Find(TPair<FString, FString>(_targetcomponent, _targetcommand));
+
+	if (tmpGPBptr != nullptr)
+	{
+		c2ipb::Call* tmpGPB = *tmpGPBptr;
+		return FString(UTF8_TO_TCHAR(tmpGPB->event().val_string().c_str()));
+	}
+	else
+	{
+		std::string tmp2 = "null pointer";
+
+		return FString(UTF8_TO_TCHAR(tmp2.c_str()));
+	}
 }
