@@ -143,3 +143,16 @@ FString UGPBDataDispatcher::GetStringValueFromRegistry(FString _targetcomponent,
 		return FString(UTF8_TO_TCHAR(tmp2.c_str()));
 	}
 }
+
+FString UGPBDataDispatcher::GetAndRemoveStringValueFromRegistry(FString _targetComponent, FString _targetcommand)
+{
+	FString res = GetStringValueFromRegistry(_targetComponent, _targetcommand);
+	
+	if (!res.Equals("null pointer"))
+	{
+		FScopeLock lock(&MapCriticalSection);
+
+		CallValueRegistry.Remove(TPair<FString, FString>(_targetComponent, _targetcommand));
+	}
+	return res;
+}
