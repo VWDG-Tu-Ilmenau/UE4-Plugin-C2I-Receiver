@@ -87,9 +87,6 @@ int UGPBDataDispatcher::GetIntValueFromRegistry(FString _targetcomponent, FStrin
 	if (CallValueRegistry.Num() == 0)
 		return -555;
 
-	bool containsValue = CallValueRegistry.Contains(TPair<FString, FString>(_targetcomponent, _targetcommand));
-
-
 	c2ipb::Call** tmpGPBptr = CallValueRegistry.Find(TPair<FString, FString>(_targetcomponent, _targetcommand));
 
 	if (tmpGPBptr != nullptr)
@@ -108,9 +105,6 @@ float UGPBDataDispatcher::GetFloatValueFromRegistry(FString _targetcomponent, FS
 	FScopeLock lock(&MapCriticalSection);
 	if (CallValueRegistry.Num() == 0)
 		return -777;
-
-	bool containsValue = CallValueRegistry.Contains(TPair<FString, FString>(_targetcomponent, _targetcommand));
-
 
 	c2ipb::Call** tmpGPBptr = CallValueRegistry.Find(TPair<FString, FString>(_targetcomponent, _targetcommand));
 	
@@ -134,9 +128,6 @@ FString UGPBDataDispatcher::GetStringValueFromRegistry(FString _targetcomponent,
 		std::string tmp = "registry empty";
 		return FString(UTF8_TO_TCHAR(tmp.c_str()));
 	}
-
-	bool containsValue = CallValueRegistry.Contains(TPair<FString, FString>(_targetcomponent, _targetcommand));
-
 
 	c2ipb::Call** tmpGPBptr = CallValueRegistry.Find(TPair<FString, FString>(_targetcomponent, _targetcommand));
 
