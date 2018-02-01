@@ -54,6 +54,8 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Car2IXS|GPBReceiver")
 		FString GetAndRemoveStringValueFromRegistry(FString _targetComponent, FString _targetcommand);
 
+	UFUNCTION(BlueprintCallable, Category = "Car2IXS|GPBReceiver")
+		int GetAndRemoveIntValueFromRegistry(FString _targetComponent, FString _targetcommand);
 
 private:
 	float val_float;

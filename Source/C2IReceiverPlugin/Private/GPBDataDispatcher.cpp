@@ -156,3 +156,9 @@ FString UGPBDataDispatcher::GetAndRemoveStringValueFromRegistry(FString _targetC
 	}
 	return res;
 }
+
+int UGPBDataDispatcher::GetAndRemoveIntValueFromRegistry(FString _targetComponent, FString _targetcommand)
+{
+	throw std::exception("The method or operation is not implemented.");
+}
+
